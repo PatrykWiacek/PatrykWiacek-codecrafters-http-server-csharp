@@ -10,16 +10,44 @@ Console.WriteLine("Logs from your program will appear here!");
 
 // Uncomment this block to pass the first stage
 TcpListener server = new TcpListener(IPAddress.Any, 4221);
-server.Start(); 
-var socket = server.AcceptSocket(); // wait for client+
+server.Start();
+while (true)
+{
+    var socket = await server.AcceptSocketAsync(); // wait for client+
 
-var buffer = new byte[256];
-await socket.ReceiveAsync(buffer);
+    var buffer = new byte[1024];
+    var bytesRecived = await socket.ReceiveAsync(buffer);
+    var request = Encoding.UTF8.GetString(buffer,0,bytesRecived);
 
-var request = Encoding.UTF8.GetString(buffer);
-var path = request.Split("\r\n").FirstOrDefault()?.Split(" ")[1];
 
-var response = path is "/" ? responeOK : notFound ;
-var bytesRespone = Encoding.UTF8.GetBytes(response);
-socket.Send(bytesRespone);
+    var path = request.Split("\r\n").FirstOrDefault()?.Split(" ")[1];
+    if (path.StartsWith("/echo/"))
+    {
+        var echoString = path.Substring(6);
+
+        var responseBody = echoString;
+        var contentType = "text/plain";
+        var contentLength = Encoding.UTF8.GetByteCount(responseBody).ToString();
+
+        var respone = new StringBuilder();
+        respone.Append(responeOK);
+        respone.Append($"Content-Type : {contentType}\r\n");
+        respone.Append($"Content-Length : {contentLength}\r\n");
+        respone.Append("\r\n");
+        respone.Append(responseBody);
+        respone.Append("\r\n");
+
+        var bytesResponse = Encoding.UTF8.GetBytes(respone.ToString());
+
+        await socket.SendAsync(bytesResponse);
+    }
+    else
+    {
+        var byteRespones = Encoding.UTF8.GetBytes(notFound);
+        await socket.SendAsync(byteRespones);
+    }
+    socket.Shutdown(SocketShutdown.Both);
+    socket.Close();
+}
+
 

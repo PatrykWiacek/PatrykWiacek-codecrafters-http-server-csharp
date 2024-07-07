@@ -11,8 +11,7 @@ Console.WriteLine("Logs from your program will appear here!");
 // Uncomment this block to pass the first stage
 TcpListener server = new TcpListener(IPAddress.Any, 4221);
 server.Start();
-while (true)
-{
+
     var socket = await server.AcceptSocketAsync(); // wait for client+
 
     var buffer = new byte[1024];
@@ -29,7 +28,8 @@ while (true)
         response.Append("Content-Length: 0\r\n");
         response.Append("\r\n");
 
-
+        var bytesResponse = Encoding.UTF8.GetBytes(response.ToString());
+        await socket.SendAsync(bytesResponse, SocketFlags.None);
     }
     else if (path.StartsWith("/echo/"))
     {
@@ -47,15 +47,15 @@ while (true)
         response.Append(responseBody);
         
         var bytesResponse = Encoding.UTF8.GetBytes(response.ToString());
-        await socket.SendAsync(bytesResponse);
+        await socket.SendAsync(bytesResponse, SocketFlags.None);
     }
     else
     {
-        var byteRespones = Encoding.UTF8.GetBytes(notFound);
-        await socket.SendAsync(byteRespones);
+        var bytesResponse = Encoding.UTF8.GetBytes(notFound);
+        await socket.SendAsync(bytesResponse, SocketFlags.None);
     }
     socket.Shutdown(SocketShutdown.Both);
     socket.Close();
-}
+
 
 

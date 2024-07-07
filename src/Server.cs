@@ -25,7 +25,7 @@ while (true)
     {
         var response = new StringBuilder();
         response.Append(responseOK);
-
+        response.Append("\r\n");
         var bytesResponse = Encoding.UTF8.GetBytes(response.ToString());
         await socket.SendAsync(bytesResponse, SocketFlags.None);
     }

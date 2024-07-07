@@ -19,5 +19,3 @@ var path = request.Split("\r\n").FirstOrDefault()?.Split(" ")[1];
 var response = path is "/" ? "HTTP/1.1 200 OK\r\n\r\n" : "HTTP/1.1 404 Not Found\r\n\r\n";
 var bytesRespone = Encoding.UTF8.GetBytes(response);
 socket.Send(bytesRespone);
-
-Console.ReadLine();

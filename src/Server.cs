@@ -9,12 +9,7 @@ string notFound = "HTTP/1.1 404 Not Found\r\n\r\n";
 Console.WriteLine("Logs from your program will appear here!");
 
 
-string directoryPath = args.FirstOrDefault(arg => arg.StartsWith("--directory="))?.Split('=')[1];
-if (string.IsNullOrEmpty(directoryPath) || !Directory.Exists(directoryPath))
-{
-    Console.WriteLine("Invalid or missing directory path");
-    return;
-}
+
 // Uncomment this block to pass the first stage
 TcpListener server = new TcpListener(IPAddress.Any, 4221);
 server.Start();
@@ -82,27 +77,25 @@ while (true)
     }
     else if (path.StartsWith("/files/"))
     {
-        var filename = path.Substring(7);
-        var filePath = Path.Combine(directoryPath, filename);
+        var filename = path.Substring(7); // Pobierz nazwê pliku po "/files/"
+        var directory = "/tmp/"; // Przyk³adowy katalog z plikami, mo¿na zmieniæ na inny
+        var filePath = Path.Combine(directory, filename);
 
         if (File.Exists(filePath))
         {
             var fileContents = await File.ReadAllBytesAsync(filePath);
+            var contentType = "application/octet-stream";
+            var contentLength = fileContents.Length.ToString();
 
-            var response = new StringBuilder();
-            response.Append(responseOK);
-            response.Append("Content-Type: application/octet-stream\r\n");
-            response.Append($"Content-Length: {fileContents.Length.ToString()}\r\n");
-            response.Append("\r\n");
-
-            var headerBytes  = Encoding.UTF8.GetBytes(response.ToString());
-            await socket.SendAsync(headerBytes , SocketFlags.None);
+            string response = $"{responseOK}Content-Type: {contentType}\r\nContent-Length: {contentLength}\r\n\r\n";
+            var responseHeaderBytes = Encoding.UTF8.GetBytes(response);
+            await socket.SendAsync(responseHeaderBytes, SocketFlags.None);
             await socket.SendAsync(fileContents, SocketFlags.None);
         }
         else
         {
-            var byteRespone = Encoding.UTF8.GetBytes(notFound);
-            await socket.SendAsync(byteRespone, SocketFlags.None);
+            var bytesResponse = Encoding.UTF8.GetBytes(notFound);
+            await socket.SendAsync(bytesResponse, SocketFlags.None);
         }
     }
     else

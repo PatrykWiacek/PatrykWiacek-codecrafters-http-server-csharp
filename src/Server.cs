@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using System.Text;
 
 
-string responeOK = "HTTP/1.1 200 OK\r\n\r\n";
+string responseOK = "HTTP/1.1 200 OK\r\n\r\n";
 string notFound = "HTTP/1.1 404 Not Found\r\n\r\n";
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 Console.WriteLine("Logs from your program will appear here!");
@@ -24,7 +24,7 @@ while (true)
     if (path == "/")
     {
         var response = new StringBuilder();
-        response.Append(responeOK);
+        response.Append(responseOK);
         response.Append("Content-Type: text/plain\r\n");
         response.Append("Content-Length: 0\r\n");
         response.Append("\r\n");
@@ -34,20 +34,19 @@ while (true)
     else if (path.StartsWith("/echo/"))
     {
         var echoString = path.Substring(6);
-
+        
         var responseBody = echoString;
         var contentType = "text/plain";
         var contentLength = Encoding.UTF8.GetByteCount(responseBody).ToString();
 
-        var respone = new StringBuilder();
-        respone.Append(responeOK);
-        respone.Append($"Content-Type: {contentType}\r\n");
-        respone.Append($"Content-Length: {contentLength}\r\n");
-        respone.Append("\r\n");
-        respone.Append(responseBody);
-
-        var bytesResponse = Encoding.UTF8.GetBytes(respone.ToString());
-
+        var response = new StringBuilder();
+        response.Append(responseOK);
+        response.Append($"Content-Type: {contentType}\r\n");
+        response.Append($"Content-Length: {contentLength}\r\n");
+        response.Append("\r\n");
+        response.Append(responseBody);
+        
+        var bytesResponse = Encoding.UTF8.GetBytes(response.ToString());
         await socket.SendAsync(bytesResponse);
     }
     else

@@ -4,7 +4,7 @@ using System.Text;
 
 
 string responseOK = "HTTP/1.1 200 OK\r\n";
-string notFound = "HTTP/1.1 404 Not Found\r\n";
+string notFound = "HTTP/1.1 404 Not Found\r\n\r\n";
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 Console.WriteLine("Logs from your program will appear here!");
 

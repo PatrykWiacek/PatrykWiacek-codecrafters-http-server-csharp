@@ -37,7 +37,7 @@ while (true)
 
         var respone = new StringBuilder();
         respone.Append(responeOK);
-        respone.Append($"Content-Type : {contentType}\r\n");
+        respone.Append($"Content-Type: {contentType}\r\n");
         respone.Append($"Content-Length : {contentLength}\r\n");
         respone.Append("\r\n");
         respone.Append(responseBody);

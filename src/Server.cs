@@ -21,7 +21,13 @@ while (true)
 
 
     var path = request.Split("\r\n").FirstOrDefault()?.Split(" ")[1];
-    if (path.StartsWith("/echo/"))
+    if (path == "/")
+    {
+        var bytesRespone = Encoding.UTF8.GetBytes(responeOK);
+        await socket.SendAsync(bytesRespone);
+
+    }
+    else if (path.StartsWith("/echo/"))
     {
         var echoString = path.Substring(6);
 

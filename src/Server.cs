@@ -4,7 +4,7 @@ using System.Text;
 
 
 string responseOK = "HTTP/1.1 200 OK\r\n";
-string notFound = "HTTP/1.1 404 Not Found\r\n\r\n";
+string notFound = "HTTP/1.1 404 Not Found\r\n";
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 Console.WriteLine("Logs from your program will appear here!");
 
@@ -26,7 +26,6 @@ while (true)
         var response = new StringBuilder();
         response.Append(responseOK);
 
-
         var bytesResponse = Encoding.UTF8.GetBytes(response.ToString());
         await socket.SendAsync(bytesResponse, SocketFlags.None);
     }
@@ -40,7 +39,6 @@ while (true)
 
         var response = new StringBuilder();
         response.Append(responseOK);
-        response.Append("Headers");
         response.Append($"Content-Type: {contentType}\r\n");
         response.Append($"Content-Length: {contentLength}\r\n");
         response.Append("\r\n");

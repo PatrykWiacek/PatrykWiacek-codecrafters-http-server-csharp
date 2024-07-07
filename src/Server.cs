@@ -20,7 +20,9 @@ while (true)
     var request = Encoding.UTF8.GetString(buffer,0,bytesRecived);
 
 
-    var path = request.Split("\r\n").FirstOrDefault()?.Split(" ")[1];
+    var lines = request.Split("\r\n");
+    var path = lines.FirstOrDefault()?.Split(" ")[1];
+
     if (path == "/")
     {
         var response = new StringBuilder();
@@ -46,6 +48,30 @@ while (true)
         
         var bytesResponse = Encoding.UTF8.GetBytes(response.ToString());
         await socket.SendAsync(bytesResponse, SocketFlags.None);
+    }
+    else if(path == "/user-agent")
+    {
+        var userAgent = lines
+            .FirstOrDefault(line => line.StartsWith("User-Agent:", StringComparison.CurrentCultureIgnoreCase))
+            ?.Substring(12);
+
+        if (userAgent != null)
+        {
+            var responseBody = userAgent;
+
+            var contentType = "text/plain";
+            var contentLength = Encoding.UTF8.GetByteCount(responseBody).ToString();
+
+            var response = new StringBuilder();
+            response.Append(responseOK);
+            response.Append($"Content-Type: {contentType}\r\n");
+            response.Append($"Content-Length: {contentLength}\r\n");
+            response.Append("\r\n");
+            response.Append(responseBody);
+
+            var bytesResponse = Encoding.UTF8.GetBytes(response.ToString());
+            await socket.SendAsync(bytesResponse, SocketFlags.None);
+        }
     }
     else
     {

@@ -23,8 +23,12 @@ while (true)
     var path = request.Split("\r\n").FirstOrDefault()?.Split(" ")[1];
     if (path == "/")
     {
-        var bytesRespone = Encoding.UTF8.GetBytes(responeOK);
-        await socket.SendAsync(bytesRespone);
+        var response = new StringBuilder();
+        response.Append(responeOK);
+        response.Append("Content-Type: text/plain\r\n");
+        response.Append("Content-Length: 0\r\n");
+        response.Append("\r\n");
+
 
     }
     else if (path.StartsWith("/echo/"))

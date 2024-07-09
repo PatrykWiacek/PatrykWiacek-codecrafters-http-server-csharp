@@ -133,11 +133,6 @@ async Task HandleClient(Socket socket)
             var bytesRespond = Encoding.UTF8.GetBytes(responseCreated);
             await socket.SendAsync(bytesRespond, SocketFlags.None);
         }
-        else
-        {
-            var bytesResponse = Encoding.UTF8.GetBytes(notFound);
-            await socket.SendAsync(bytesResponse, SocketFlags.None);
-        }
     }
     else
     {

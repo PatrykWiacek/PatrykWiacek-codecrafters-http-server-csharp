@@ -120,7 +120,7 @@ async Task HandleClient(Socket socket)
         var filePath = Path.Combine(directory, filename);
 
         var contentLengthHeader = lines.FirstOrDefault(line =>
-            line.StartsWith("Content-Lenbgth:", StringComparison.CurrentCultureIgnoreCase));
+            line.StartsWith("Content-Length:", StringComparison.CurrentCultureIgnoreCase));
         if (contentLengthHeader != null)
         {
             var contentLength = int.Parse(contentLengthHeader.Split(":")[1].Trim());
@@ -132,6 +132,11 @@ async Task HandleClient(Socket socket)
 
             var bytesRespond = Encoding.UTF8.GetBytes(responseCreated);
             await socket.SendAsync(bytesRespond, SocketFlags.None);
+        }
+        else
+        {
+            var bytesResponse = Encoding.UTF8.GetBytes(notFound);
+            await socket.SendAsync(bytesResponse, SocketFlags.None);
         }
     }
     else

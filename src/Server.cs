@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 string responseOK = "HTTP/1.1 200 OK\r\n";
+string responseCreated = "HTTP/1.1 201 Created\r\n\r\n";
 string notFound = "HTTP/1.1 404 Not Found\r\n\r\n";
 string directory = args.Length > 0 ? args[1] : ".";
 
@@ -25,8 +26,11 @@ async Task HandleClient(Socket socket)
     var bytesRecived = await socket.ReceiveAsync(buffer);
     var request = Encoding.UTF8.GetString(buffer, 0, bytesRecived);
 
+
     var lines = request.Split("\r\n");
-    var path = lines.FirstOrDefault()?.Split(" ")[1];
+    var requestLine = lines.FirstOrDefault();
+    var path = requestLine?.Split(" ")[1];
+    var method = requestLine?.Split(" ")[0];
 
     if (path == "/")
     {
@@ -110,7 +114,31 @@ async Task HandleClient(Socket socket)
             await socket.SendAsync(bytesResponse, SocketFlags.None);
         }
     }
+    else if (method == "POST" && path.StartsWith("/files/"))
+    {
+        var filename = path.Substring(7);
+        var filePath = Path.Combine(directory, filename);
 
+        var contentLengthHeader = lines.FirstOrDefault(line =>
+            line.StartsWith("Content-Lenbgth:", StringComparison.CurrentCultureIgnoreCase));
+        if (contentLengthHeader != null)
+        {
+            var contentLength = int.Parse(contentLengthHeader.Split(":")[1].Trim());
+
+            var bodyIndex = Array.FindIndex(buffer, bytesRecived - contentLength, b => b == (byte)'\r');
+            var requestBody = Encoding.UTF8.GetString(buffer, bodyIndex + 2, contentLength);
+
+            await File.WriteAllTextAsync(filePath, requestBody);
+
+            var bytesRespond = Encoding.UTF8.GetBytes(responseCreated);
+            await socket.SendAsync(bytesRespond, SocketFlags.None);
+        }
+        else
+        {
+            var bytesResponse = Encoding.UTF8.GetBytes(notFound);
+            await socket.SendAsync(bytesResponse, SocketFlags.None);
+        }
+    }
     else
     {
         var bytesResponse = Encoding.UTF8.GetBytes(notFound);

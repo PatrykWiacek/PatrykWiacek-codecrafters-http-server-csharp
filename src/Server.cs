@@ -119,19 +119,20 @@ async Task HandleClient(Socket socket)
         var filename = path.Substring(7);
         var filePath = Path.Combine(directory, filename);
 
-        var contentLengthHeader = lines.FirstOrDefault(line =>
-            line.StartsWith("Content-Length:", StringComparison.CurrentCultureIgnoreCase));
+        // Znalezienie nag³ówka Content-Length
+        var contentLengthHeader = lines.FirstOrDefault(line => line.StartsWith("Content-Length:", StringComparison.OrdinalIgnoreCase));
         if (contentLengthHeader != null)
         {
             var contentLength = int.Parse(contentLengthHeader.Split(":")[1].Trim());
 
-            var bodyIndex = Array.FindIndex(buffer, bytesRecived - contentLength, b => b == (byte)'\r');
-            var requestBody = Encoding.UTF8.GetString(buffer, bodyIndex + 2, contentLength);
+            // Odczyt cia³a ¿¹dania, pomijaj¹c nag³ówki
+            var bodyIndex = request.IndexOf("\r\n\r\n") + 4;
+            var requestBody = request.Substring(bodyIndex, contentLength);
 
             await File.WriteAllTextAsync(filePath, requestBody);
 
-            var bytesRespond = Encoding.UTF8.GetBytes(responseCreated);
-            await socket.SendAsync(bytesRespond, SocketFlags.None);
+            var bytesResponse = Encoding.UTF8.GetBytes(responseCreated);
+            await socket.SendAsync(bytesResponse, SocketFlags.None);
         }
         else
         {

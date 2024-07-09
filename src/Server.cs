@@ -32,7 +32,16 @@ async Task HandleClient(Socket socket)
     var path = requestLine?.Split(" ")[1];
     var method = requestLine?.Split(" ")[0];
 
-    if (path == "/")
+    string acceptEncoding = null;
+    foreach (var line in lines)
+    {
+        if (line.StartsWith("Accept-Encoding:", StringComparison.OrdinalIgnoreCase))
+        {
+            acceptEncoding = line.Substring(16).Trim();
+            break;
+        }
+    }
+    if (method == "GET" && path == "/")
     {
         var response = new StringBuilder();
         response.Append(responseOK);
@@ -42,7 +51,7 @@ async Task HandleClient(Socket socket)
         var bytesResponse = Encoding.UTF8.GetBytes(response.ToString());
         await socket.SendAsync(bytesResponse, SocketFlags.None);
     }
-    else if (path.StartsWith("/echo/"))
+    else if (method == "GET" && path.StartsWith("/echo/"))
     {
         var echoString = path.Substring(6);
         
@@ -54,13 +63,17 @@ async Task HandleClient(Socket socket)
         response.Append(responseOK);
         response.Append($"Content-Type: {contentType}\r\n");
         response.Append($"Content-Length: {contentLength}\r\n");
+        if (acceptEncoding != null && acceptEncoding.Contains("gzip"))
+        {
+            response.Append("Content-Encoding: gzip\r\n");
+        }
         response.Append("\r\n");
         response.Append(responseBody);
         
         var bytesResponse = Encoding.UTF8.GetBytes(response.ToString());
         await socket.SendAsync(bytesResponse, SocketFlags.None);
     }
-    else if (path == "/user-agent")
+    else if (method == "GET" && path == "/user-agent")
     {
         var userAgent = lines.FirstOrDefault(line => line.StartsWith("User-Agent:", StringComparison.OrdinalIgnoreCase))?.Substring(12).Trim();
 

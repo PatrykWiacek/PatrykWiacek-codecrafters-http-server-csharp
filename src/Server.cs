@@ -86,7 +86,7 @@ async Task HandleClient(Socket socket)
             await socket.SendAsync(bytesResponse, SocketFlags.None);
         }
     }
-    else if(path.StartsWith("/files/"))
+    else if(method =="GET" && path.StartsWith("/files/"))
     {
         var filename = path.Substring(7);
         var filepath = Path.Combine(directory, filename);

@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -55,23 +56,25 @@ async Task HandleClient(Socket socket)
     {
         var echoString = path.Substring(6);
         
-        var responseBody = echoString;
+        byte[] responseBodyBytes = Encoding.UTF8.GetBytes(echoString);
         var contentType = "text/plain";
-        var contentLength = Encoding.UTF8.GetByteCount(responseBody).ToString();
-
         var response = new StringBuilder();
         response.Append(responseOK);
         response.Append($"Content-Type: {contentType}\r\n");
-        response.Append($"Content-Length: {contentLength}\r\n");
+
+        // Check for supported encoding
         if (acceptEncoding != null && acceptEncoding.Contains("gzip"))
         {
+            responseBodyBytes = CompressWithGzip(responseBodyBytes);
             response.Append("Content-Encoding: gzip\r\n");
         }
+
+        response.Append($"Content-Length: {responseBodyBytes.Length}\r\n");
         response.Append("\r\n");
-        response.Append(responseBody);
         
-        var bytesResponse = Encoding.UTF8.GetBytes(response.ToString());
-        await socket.SendAsync(bytesResponse, SocketFlags.None);
+        var headerBytes = Encoding.UTF8.GetBytes(response.ToString());
+        await socket.SendAsync(headerBytes, SocketFlags.None);
+        await socket.SendAsync(responseBodyBytes, SocketFlags.None);
     }
     else if (method == "GET" && path == "/user-agent")
     {
@@ -161,4 +164,16 @@ async Task HandleClient(Socket socket)
 
     socket.Shutdown(SocketShutdown.Both);
     socket.Close();
+}
+
+byte[] CompressWithGzip(byte[] data)
+{
+    using (var compressedStrem = new MemoryStream())
+    {
+        using (var gzipStream = new GZipStream(compressedStrem, CompressionMode.Compress))
+        {
+            gzipStream.Write(data, 0 ,data.Length);
+        }
+        return compressedStrem.ToArray();
+    }
 }
